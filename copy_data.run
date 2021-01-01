@@ -1,0 +1,140 @@
+#!/bin/bash
+
+# Cd into our working directory in case we're not into it already
+cd "$(dirname "$0")";
+
+echo "----------------------------------------------------------------------------------------------"
+echo "icon-d2-eps: Starting processing of icon-d2-eps model data - `date`"
+echo "----------------------------------------------------------------------------------------------"
+
+# Folder to be used to download and process data
+export MODEL_DATA_FOLDER="/tmp/icon-d2-eps/"
+export HOME_FOLDER=$(pwd)
+export N_CONCUR_PROCESSES=12 # not used anymore as it needs to be tuned per case
+export NCFTP_BOOKMARK="altervista"
+DATA_DOWNLOAD=true
+DATA_PLOTTING=false
+DATA_UPLOAD=false
+
+##### LOAD functions to download model data
+. ./functions_download_dwd.sh
+export SHELL=$(type -p bash)
+# We need to open many files at the same time
+ulimit -Sn 8192
+
+export year=`date +"%Y"`
+export month=`date +"%m"`
+export day=`date +"%d"`
+export hour=`date +"%H"`
+export hour_no_zero=`date -u +"%-H"`
+
+if [ "$hour_no_zero" -ge 4 ] && [ "$hour_no_zero" -lt 16 ] 
+then 
+ run="00"
+elif [ "$hour_no_zero" -ge 16 ] && [ "$hour_no_zero" -lt 23 ] 
+then
+ run="12"
+fi
+
+export run
+
+mkdir -p ${MODEL_DATA_FOLDER}
+
+# Move to the data folder to do processing
+cd ${MODEL_DATA_FOLDER} || { echo 'Cannot change to DATA folder' ; exit 1; }
+
+# SECTION 1 - DATA DOWNLOAD ############################################################
+
+if [ "$DATA_DOWNLOAD" = true ]; then
+	echo "----------------------------------------------------------------------------------------------"
+	echo "icon-d2-eps: Starting downloading of data - `date`"
+	echo "----------------------------------------------------------------------------------------------"
+	# Remove older files
+	rm ${MODEL_DATA_FOLDER}*.nc
+
+	# Invariant
+	download_invariant_icon_d2_eps
+
+	#2-D variables
+	# note that for some reason snow_gsp and snow_con only have all timesteps for 00 and 12 runs
+	variables=("t_2m" "vmax_10m" "tot_prec" "clct" "snow_gsp" "snow_con" \
+			   "cape_ml" "cin_ml" "h_snow" "rain_con" "rain_gsp" "tmax_2m" "tmin_2m")
+	parallel -j 5 --delay 1 download_merge_2d_variable_icon_d2_eps ::: "${variables[@]}"
+
+	# #3-D variables on pressure levels, not yet supported 
+
+	# # Create 1 file per ensemble member with all variables and timesteps inside 
+	merge_members
+fi 
+
+############################################################
+
+# SECTION 2 - DATA PLOTTING ############################################################
+
+if [ "$DATA_PLOTTING" = true ]; then
+	echo "----------------------------------------------------------------------------------------------"
+	echo "icon-d2-eps: Starting plotting of data - `date`"
+	echo "----------------------------------------------------------------------------------------------"
+	python --version
+	cp ${HOME_FOLDER}/plotting/*.py ${MODEL_DATA_FOLDER}
+
+	export QT_QPA_PLATFORM=offscreen # Needed to avoid errors when using Python without display
+
+	# python plot_meteogram.py
+
+	scripts=("plot_max_gust.py" "plot_tot_prec.py" "plot_snow.py")
+
+	projections=("euratl")
+
+	parallel -j 5 python ::: "${scripts[@]}" ::: "${projections[@]}"
+	rm ${MODEL_DATA_FOLDER}*.py
+fi
+
+############################################################
+
+
+# SECTION 3 - IMAGES UPLOAD ############################################################
+# Use ncftpbookmarks to add a new FTP server with credentials
+if [ "$DATA_UPLOAD" = true ]; then
+	echo "----------------------------------------------------------------------------------------------"
+	echo "icon-d2-eps: Starting FTP uploading - `date`"
+	echo "----------------------------------------------------------------------------------------------"
+	# First upload meteograms
+	#ncftpput -R -v -DD -m ${NCFTP_BOOKMARK} icon_eu_eps meteogram_*
+	#
+	# Then upload the other pictures
+	#
+	images_output=("prob_prec_50" "prob_winds_50" "prob_snow")
+
+	# suffix for naming
+	projections_output=("")
+	# remote folder on server
+	projections_output_folder=("icon_eu_eps")
+
+	# Create a lisf of all the images to upload 
+	upload_elements=()
+	for i in "${!projections_output[@]}"; do
+		for j in "${images_output[@]}"; do
+				upload_elements+=("${projections_output_folder[$i]}/${j} ./${projections_output[$i]}${j}_*")
+		done
+	done
+
+
+	for k in "${upload_elements[@]}"; do
+		ncftpput -R -v -DD -m ${NCFTP_BOOKMARK} ${k}
+	done
+
+	rm ${MODEL_DATA_FOLDER}*.png
+fi 
+
+############################################################
+
+# SECTION 4 - CLEANING ############################################################
+
+echo "----------------------------------------------------------------------------------------------"
+echo "icon-d2-eps: Finished cleaning up - `date`"
+echo "----------------------------------------------------------------------------------------------"
+
+############################################################
+
+cd -
