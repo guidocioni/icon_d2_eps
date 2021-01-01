@@ -363,7 +363,7 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=256):
 
 def get_colormap(cmap_type):
     """Create a custom colormap."""
-    colors_tuple = pd.read_csv(home_folder + '/plotting/cmap_%s.rgba' % cmap_type).values 
+    colors_tuple = pd.read_csv(home_folder + '/plotting/cmap_%s.rgba' % cmap_type).values
 
     cmap = colors.LinearSegmentedColormap.from_list(cmap_type, colors_tuple, colors_tuple.shape[0])
     return(cmap)
