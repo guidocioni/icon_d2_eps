@@ -34,8 +34,8 @@ else:
 folder_images = folder
 chunks_size = 10
 processes = 9
-figsize_x = 12
-figsize_y = 10
+figsize_x = 11
+figsize_y = 9
 invariant_file = folder+'invariant_*.nc'
 
 if "HOME_FOLDER" in os.environ:
@@ -82,7 +82,7 @@ proj_defs = {
     'de':
     {
         'projection': 'cyl',
-        'llcrnrlon': 5,
+        'llcrnrlon': 4.5,
         'llcrnrlat': 46.5,
         'urcrnrlon': 16,
         'urcrnrlat': 56,

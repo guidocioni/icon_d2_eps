@@ -67,7 +67,7 @@ def plot_files(dss, **args):
         cs = args['ax'].tricontourf(args['x'],
                                     args['y'],
                                     data['prob_cloudy'],
-                                    extend='max',
+                                    extend='both',
                                     cmap=args['cmap'],
                                     levels=args['levels'])
 

@@ -44,7 +44,7 @@ def main():
 
     ax = plt.gca()
     m, x, y = get_projection(dset, projection, labels=True)
-    m.fillcontinents(color='lightgray', lake_color='whitesmoke', zorder=0)
+    m.arcgisimage(service='Canvas/World_Dark_Gray_Base', xpixels = 800)
 
     dset = dset.drop(['SNOW_CON', 'SNOW_GSP', 'RAIN_CON', 'RAIN_GSP',
                       'rain_rate', 'snow_rate']).load()
