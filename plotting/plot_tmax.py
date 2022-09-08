@@ -12,7 +12,7 @@ if not debug:
 
 
 # The one employed for the figure name when exported
-variable_name = 'prob_clouds'
+variable_name = 'prob_tmax'
 
 utils.print_message('Starting script to plot '+variable_name)
 
@@ -27,23 +27,24 @@ else:
 
 
 def main():
-    dset = utils.read_dataset(['clct'], region=projection)
-    dset['prob_cloudy'] = ((dset.CLCT > 50).sum(
+    dset = utils.read_dataset(['tmax_2m'], region=projection)
+    dset['t2m'] = dset['t2m'].metpy.convert_units('degC').metpy.dequantify()
+    dset['prob_tmax_25'] = ((dset.t2m > 25).sum(
+        dim='number') / len(dset.number)) * 100
+    dset['prob_tmax_30'] = ((dset.t2m > 30).sum(
         dim='number') / len(dset.number)) * 100
 
     levels = np.linspace(10, 100, 10)
-    cmap = utils.get_colormap("sky")
-
     _ = plt.figure(figsize=(utils.figsize_x, utils.figsize_y))
 
     ax = plt.gca()
     m, x, y = utils.get_projection(dset, projection, labels=True)
     m.fillcontinents(color='lightgray', lake_color='whitesmoke', zorder=0)
 
-    dset = dset.drop(['CLCT','clon','clat']).load()
+    dset = dset.drop(['t2m','clon','clat']).load()
 
     # All the arguments that need to be passed to the plotting function
-    args = dict(x=x, y=y, ax=ax, levels=levels, cmap=cmap)
+    args = dict(x=x, y=y, ax=ax, levels=levels)
 
     utils.print_message('Pre-processing finished, launching plotting scripts')
     if debug:
@@ -67,14 +68,14 @@ def plot_files(dss, **args):
 
         cs = args['ax'].tricontourf(args['x'],
                                     args['y'],
-                                    data['prob_cloudy'],
-                                    extend='both',
-                                    cmap=args['cmap'],
+                                    data['prob_tmax_25'],
+                                    extend='max',
+                                    cmap='plasma_r',
                                     levels=args['levels'])
 
         an_fc = utils.annotation_forecast(args['ax'], time)
         an_var = utils.annotation(
-            args['ax'], 'Prob. cloud cover > 50%', loc='lower left', fontsize=6)
+            args['ax'], 'Prob. tmax > 25', loc='lower left', fontsize=6)
         an_run = utils.annotation_run(args['ax'], run)
 
         if first:

@@ -45,12 +45,13 @@ download_merge_2d_variable_icon_d2_eps()
 	filename_grep="icon-d2-eps_germany_icosahedral_single-level_${year}${month}${day}${run}_(.*)_${1}.grib2.bz2"
 	url="https://opendata.dwd.de/weather/nwp/icon-d2-eps/grib/${run}/${1}/"
 	if [ ! -f "${1}_${year}${month}${day}${run}.nc" ]; then
-		listurls $filename_grep $url | parallel -j 10 get_and_extract_one {}
+		listurls $filename_grep $url | parallel -j 5 get_and_extract_one {}
 		find ${filename} -empty -type f -delete # Remove empty files
-		cdo -f nc copy -mergetime ${filename} ${1}_${year}${month}${day}${run}.nc
-		rm ${filename}
-		extract_members ${1}_${year}${month}${day}${run}.nc
-		rm ${1}_${year}${month}${day}${run}.nc
+        # Merge (but not for total precipitation)
+        if [ "$1" != "tot_prec" ]; then
+            cdo mergetime ${filename} ${1}_${year}${month}${day}${run}.grib2
+            rm ${filename}
+        fi
 	fi
 }
 export -f download_merge_2d_variable_icon_d2_eps
@@ -62,11 +63,11 @@ download_invariant_icon_d2_eps()
 	wget -r -nH -np -nv -nd --reject "index.html*" --cut-dirs=3 -A "${filename}.bz2" "https://opendata.dwd.de/weather/lib/cdo/"
 	bzip2 -d ${filename}.bz2
 	# download hsurf
-	filename="icon-d2-eps_germany_icosahedral_time-invariant_${year}${month}${day}${run}_000_0_hsurf.grib2"
-	wget -r -nH -np -nv -nd --reject "index.html*" --cut-dirs=3 -A "${filename}.bz2" "https://opendata.dwd.de/weather/nwp/icon-d2-eps/grib/${run}/hsurf/"
-	bzip2 -d ${filename}.bz2 
-	cdo -f nc setgrid,icon_grid_0047_R19B07_L.nc:2 -copy ${filename} invariant_hsurf_${year}${month}${day}${run}.nc
-	rm ${filename}
+	# filename="icon-d2-eps_germany_icosahedral_time-invariant_${year}${month}${day}${run}_000_0_hsurf.grib2"
+	# wget -r -nH -np -nv -nd --reject "index.html*" --cut-dirs=3 -A "${filename}.bz2" "https://opendata.dwd.de/weather/nwp/icon-d2-eps/grib/${run}/hsurf/"
+	# bzip2 -d ${filename}.bz2 
+	#cdo -f nc setgrid,icon_grid_0047_R19B07_L.nc:2 -copy ${filename} invariant_hsurf_${year}${month}${day}${run}.nc
+	#rm ${filename}
 }
 export -f download_invariant_icon_d2_eps
 ##############################################
