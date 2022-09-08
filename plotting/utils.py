@@ -99,11 +99,11 @@ def read_dataset(vars=['tmax_2m', 'vmax_10m'],
     for var in vars:
         dss.append(xr.open_mfdataset(f"{folder}/*{var}*.grib2"))
     dset = xr.merge(dss, compat='override')
+    dset = dset.rename({'values':'cell'})
     grid = xr.open_dataset(f"{folder}/icon_grid_0047_R19B07_L.nc")
-    dset = dset.assign_coords(
-        {'values': grid.rename_dims({'cell': 'values'}).clat})
-    dset['clon'] = np.rad2deg(dset['clon'])
-    dset['clat'] = np.rad2deg(dset['clat'])
+    dset = xr.merge([dset, grid[['clon','clat']]])
+    dset['clon'] = dset['clon'].metpy.convert_units('degrees').metpy.dequantify()
+    dset['clat'] = dset['clat'].metpy.convert_units('degrees').metpy.dequantify()
     dset = dset.chunk({'number': 1})
     dset = dset.metpy.parse_cf()
 

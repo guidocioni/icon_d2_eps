@@ -64,8 +64,8 @@ if [ "$DATA_DOWNLOAD" = true ]; then
 	download_invariant_icon_d2_eps
 
 	#2-D variables
-	variables=("clct" "snow_gsp" "snow_con" \
-			   "rain_con" "rain_gsp" "tmax_2m" "tmin_2m")
+	variables=("clct" "snow_gsp" "snow_con" "h_snow" "u_10m" "v_10m" \
+			   "rain_con" "rain_gsp" "tmax_2m" "tmin_2m" "t_2m")
 	parallel -j 4 --delay 1 download_merge_2d_variable_icon_d2_eps ::: "${variables[@]}"
 fi 
 
@@ -82,7 +82,7 @@ if [ "$DATA_PLOTTING" = true ]; then
 
 	export QT_QPA_PLATFORM=offscreen # Needed to avoid errors when using Python without display
 
-	# python plot_meteogram.py
+	python plot_meteogram.py Hamburg
 
 	scripts=("plot_clouds.py" "plot_snow.py" "plot_tmax.py")
 
@@ -99,7 +99,7 @@ fi
 # if the processing is really succesfull as we have many errors in the process that
 # don't undermine the whole processing! 
 
-N_NETCDF_FILES=`find . -type f -name '*.nc' -printf x | wc -c`
+N_NETCDF_FILES=`find . -type f -name '*.grib2' -printf x | wc -c`
 N_IMAGES=`find . -type f -name '*.png' -printf x | wc -c`
 
 if [ $N_NETCDF_FILES -ge 2 ] && [ $N_IMAGES -ge 10 ]; then

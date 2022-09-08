@@ -55,6 +55,23 @@ download_merge_2d_variable_icon_d2_eps()
 	fi
 }
 export -f download_merge_2d_variable_icon_d2_eps
+##############################################
+download_merge_3d_variable_icon_d2_eps()
+{
+	filename="icon-d2-eps_germany_icosahedral_pressure-level_${year}${month}${day}${run}_*_${1}.grib2"
+	filename_grep="icon-d2-eps_germany_icosahedral_pressure-level_${year}${month}${day}${run}_(.*)_850_${1}.grib2.bz2"
+	url="https://opendata.dwd.de/weather/nwp/icon-d2-eps/grib/${run}/${1}/"
+	if [ ! -f "${1}_${year}${month}${day}${run}.nc" ]; then
+		listurls $filename_grep $url | parallel -j 5 get_and_extract_one {}
+		find ${filename} -empty -type f -delete # Remove empty files
+        # Merge (but not for total precipitation)
+        if [ "$1" != "tot_prec" ]; then
+            cdo mergetime ${filename} ${1}_${year}${month}${day}${run}.grib2
+            rm ${filename}
+        fi
+	fi
+}
+export -f download_merge_3d_variable_icon_d2_eps
 ################################################
 download_invariant_icon_d2_eps()
 {
