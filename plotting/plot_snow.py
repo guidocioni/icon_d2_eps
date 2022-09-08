@@ -79,7 +79,8 @@ def plot_files(dss, **args):
                                     extend='max',
                                     cmap=args['cmap_rain'],
                                     norm=args['norm_rain'],
-                                    levels=args['levels'])
+                                    levels=args['levels'],
+                                    zorder=1)
 
         css = args['ax'].tricontourf(args['x'],
                                      args['y'],
@@ -87,7 +88,8 @@ def plot_files(dss, **args):
                                      extend='max',
                                      cmap=args['cmap_snow'],
                                      norm=args['norm_snow'],
-                                     levels=args['levels'])
+                                     levels=args['levels'],
+                                     zorder=2)
 
         an_fc = utils.annotation_forecast(args['ax'], time)
         an_var = utils.annotation(
