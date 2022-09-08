@@ -27,8 +27,7 @@ else:
 def main():
     ds = read_dataset(vars=['t_2m', 'rain_con', 'rain_gsp',
                             'snow_gsp', 'snow_con', 'clct',
-                            'h_snow'],
-                      region='nord')
+                            'h_snow'])
     ds = compute_rate(ds)
     lons, lats = np.deg2rad(ds.clon), np.deg2rad(ds.clat)
 

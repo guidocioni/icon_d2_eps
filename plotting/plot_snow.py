@@ -32,7 +32,7 @@ def main():
 
     dset['prob_snow'] = ((dset.snow_rate > 0.25).sum(
         dim='number') / len(dset.number)) * 100
-    dset['prob_rain'] = ((dset.snow_rate > 0.1).sum(
+    dset['prob_rain'] = ((dset.rain_rate > 0.1).sum(
         dim='number') / len(dset.number)) * 100
 
     levels = np.linspace(10, 100, 10)
