@@ -114,6 +114,7 @@ if [ "$DATA_UPLOAD" = true ]; then
 	echo "icon-d2-eps: Starting FTP uploading - `date`"
 	echo "----------------------------------------------------------------------------------------------"
 	# First upload meteograms
+	ncftpput -R -v -DD -m ${NCFTP_BOOKMARK} icon_d2_eps meteogram_*
 	#
 	# Then upload the other pictures
 	#
