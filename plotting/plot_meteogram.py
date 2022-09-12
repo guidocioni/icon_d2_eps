@@ -26,7 +26,7 @@ else:
 def main():
     ds = read_dataset(vars=['t_2m', 'rain_con', 'rain_gsp',
                             'snow_gsp', 'snow_con', 'clct',
-                            'h_snow'])
+                            'h_snow', 'u_10m', 'v_10m'])
     ds = compute_rate(ds)
     lons, lats = np.deg2rad(ds.clon), np.deg2rad(ds.clat)
 
@@ -60,17 +60,15 @@ def plot(dset_city):
         pd.to_datetime(dset_city.valid_time))
     dset_city['prec_rate'] = dset_city['rain_rate'] + dset_city['snow_rate']
 
-    nrows = 3
-    ncols = 1
     sns.set(style="white")
 
     locator = mdates.AutoDateLocator(minticks=12, maxticks=48)
     formatter = mdates.ConciseDateFormatter(locator,
                                             show_offset=False,
-                                            formats=['%y', '%b', '%d %b', '%H EST', '%H EST', '%S'])
+                                            formats=['%y', '%a %d %b', '%a %d %b', '%H EST', '%H EST', '%S'])
 
     fig = plt.figure(1, figsize=(9, 10))
-    gs = gridspec.GridSpec(nrows, ncols, height_ratios=[1, 1, 1])
+    gs = gridspec.GridSpec(nrows=4, ncols=1, height_ratios=[1, 1, 0.2, 1])
 
     ax_temp = plt.subplot(gs[0])
     ax_temp.set_title("ICON-D2-EPS meteogram for "+city+" | Run " +
@@ -100,7 +98,7 @@ def plot(dset_city):
     # Add text on top of the bars
     y_max = dset_city['prec_rate'].max(dim='number')
     x = dset_city['valid_time']
-    prob = ((dset_city['prec_rate'] > 0.1).sum(
+    prob = ((dset_city['prec_rate'] > 0.01).sum(
             dim='number') / len(dset_city.number)) * 100
     for i, _ in enumerate(prob):
         if prob[i] > 0:
@@ -130,9 +128,25 @@ def plot(dset_city):
     ax_snow.tick_params(axis='y', which='both', labelsize=8)
     ax_snow.set_ylabel("Snow height", fontsize=8)
 
-    ax_clouds = plt.subplot(gs[2])
+    ax_winds = plt.subplot(gs[2])
+    ax_winds.set_ylim(-0.5, 1)
+    ax_winds.set_xlim(dset_city['valid_time'][0], dset_city['valid_time'][-1])
+    ax_winds.barbs(dset_city['valid_time'],
+                   np.zeros(dset_city['valid_time'].shape),
+                   dset_city['u10'].mean(dim='number'),
+                   dset_city['v10'].mean(dim='number'),
+                   length=5,
+                   pivot='middle',
+                   zorder=3)
+    ax_winds.xaxis.set_major_locator(locator)
+    ax_winds.xaxis.set_major_formatter(formatter)
+    ax_winds.tick_params(axis='y', which='major', labelleft=False)
+    ax_winds.tick_params(axis='x', which='both', labelbottom=False)
+    ax_winds.xaxis.grid(True)
+
+    ax_clouds = plt.subplot(gs[3])
     ax_clouds.plot(dset_city['valid_time'],
-                   dset_city['CLCT'].values.T, 'o', zorder=1, markersize=4)
+                   dset_city['CLCT'].values.T, 'o', zorder=1, markersize=5)
     ax_clouds.plot(dset_city['valid_time'], dset_city['CLCT'].mean(dim='number'), '-',
                    linewidth=2, zorder=2, color='black')
     ax_clouds.yaxis.grid(True)
@@ -142,10 +156,13 @@ def plot(dset_city):
     ax_clouds.xaxis.set_major_locator(locator)
     ax_clouds.xaxis.set_major_formatter(formatter)
     for label in ax_clouds.get_xticklabels(which='major'):
-        label.set(rotation=45)
+        label.set(rotation=90)
     ax_clouds.tick_params(axis='y', which='major', labelsize=8)
     ax_clouds.tick_params(axis='x', which='both', labelsize=8)
     ax_clouds.set_ylabel("Cloud cover", fontsize=8)
+
+    ax_clouds.annotate('Grid point %3.1fN %3.1fE' % (dset_city.clat, dset_city.clon),
+                       xy=(0.7, -0.4), xycoords='axes fraction', color="gray")
 
     fig.subplots_adjust(hspace=0.05)
 
