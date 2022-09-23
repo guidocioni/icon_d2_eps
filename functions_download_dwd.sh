@@ -47,11 +47,19 @@ download_merge_2d_variable_icon_d2_eps()
 	if [ ! -f "${1}_${year}${month}${day}${run}.nc" ]; then
 		listurls $filename_grep $url | parallel -j 5 get_and_extract_one {}
 		find ${filename} -empty -type f -delete # Remove empty files
-        # Merge (but not for total precipitation)
-        if [ "$1" != "tot_prec" ]; then
-            cdo mergetime ${filename} ${1}_${year}${month}${day}${run}.grib2
-            rm ${filename}
-        fi
+        # For total precipitation first order by time step so that CDO is able to handle it properly
+		# and remove the data every 15 minutes as it is too much
+		if [ "$1" == "tot_prec" ]; then
+			for f in $filename; do
+				grib_copy -B stepRange $f $f.2
+				rm $f
+				mv $f.2 $f
+			done
+			cdo seltime,00:00,01:00,02:00,03:00,04:00,05:00,06:00,07:00,08:00,09:00,10:00,11:00,12:00,13:00,14:00,15:00,16:00,17:00,18:00,19:00,20:00,21:00,22:00,23:00 -mergetime ${filename} ${1}_${year}${month}${day}${run}.grib2
+		else
+			cdo mergetime ${filename} ${1}_${year}${month}${day}${run}.grib2
+		fi
+		rm ${filename}
 	fi
 }
 export -f download_merge_2d_variable_icon_d2_eps
@@ -64,11 +72,8 @@ download_merge_3d_variable_icon_d2_eps()
 	if [ ! -f "${1}_${year}${month}${day}${run}.nc" ]; then
 		listurls $filename_grep $url | parallel -j 5 get_and_extract_one {}
 		find ${filename} -empty -type f -delete # Remove empty files
-        # Merge (but not for total precipitation)
-        if [ "$1" != "tot_prec" ]; then
-            cdo mergetime ${filename} ${1}_${year}${month}${day}${run}.grib2
-            rm ${filename}
-        fi
+		cdo mergetime ${filename} ${1}_${year}${month}${day}${run}.grib2
+		rm ${filename}
 	fi
 }
 export -f download_merge_3d_variable_icon_d2_eps
