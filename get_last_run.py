@@ -26,7 +26,7 @@ var_2d_list = ['alb_rad', 'alhfl_s', 'ashfl_s', 'asob_s', 'asob_t', 'aswdifd_s',
                'u_10m', 'v_10m', 'vmax_10m', 'w_snow', 'w_so', 'ww', 'z0']
 
 var_3d_list = ['clc', 'fi', 'omega', 'p',
-               'qv', 'relhum', 't', 'tke', 'u', 'v', 'w']
+               'qv', 'relhum', 't', 'u', 'v', 'w']
 
 
 def get_url_paths(url, ext='', prefix='', params={}):
@@ -48,10 +48,7 @@ def find_file_name(vars_2d=None,
                    model_url="icon-d2-eps/grib",
                    date_string=None,
                    run_string=None):
-    if run_string == '03':
-        f_times = list(range(0, 46))
-    else:
-        f_times = list(range(0, 28))
+    f_times = list(range(0, 49))
 
     #
     if type(f_times) is not list:
