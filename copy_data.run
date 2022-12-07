@@ -66,7 +66,7 @@ if [ "$DATA_DOWNLOAD" = true ]; then
 	#2-D variables
 	variables=("clct" "snow_gsp" "snow_con" "h_snow" "u_10m" "v_10m" \
 			   "rain_con" "rain_gsp" "tmax_2m" "tmin_2m" "t_2m" "tot_prec")
-	parallel -j 4 --delay 1 download_merge_2d_variable_icon_d2_eps ::: "${variables[@]}"
+	parallel -j 3 --delay 1 download_merge_2d_variable_icon_d2_eps ::: "${variables[@]}"
 fi 
 
 ############################################################
@@ -82,7 +82,7 @@ if [ "$DATA_PLOTTING" = true ]; then
 
 	export QT_QPA_PLATFORM=offscreen # Needed to avoid errors when using Python without display
 
-	python plot_meteogram.py Hamburg
+	python plot_meteogram.py Hamburg Pisa
 
 	scripts=("plot_clouds.py" "plot_snow.py" "plot_tmax.py" "plot_tot_prec.py")
 

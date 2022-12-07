@@ -234,7 +234,7 @@ def annotation_run(ax, time, loc='upper right', fontsize=8):
     """Put annotation of the run obtaining it from the
     time array passed to the function."""
     time = pd.to_datetime(time)
-    at = AnchoredText('Run %s' % time.strftime('%Y%m%d %H UTC'),
+    at = AnchoredText('ICON-D2-EPS Run %s' % time.strftime('%Y%m%d %H UTC'),
                       prop=dict(size=fontsize), frameon=True, loc=loc)
     at.patch.set_boxstyle("round,pad=0.,rounding_size=0.1")
     at.zorder = 10
